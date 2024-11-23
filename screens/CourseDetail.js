@@ -156,16 +156,17 @@ export default function CourseDetail({ navigation,route }) {
                     return (
                         <ScrollView style={styles.lessonList}>
                             {
-                               dataLesson.slice(0,1).map((video,index) => (
-                                    <TouchableOpacity
-                                            style={styles.lessonItem}
-                                            onPress={() => setSelectedVideoUrl(video.linkId)} // Chỉ cần ID video
-                                        >
-                                            <Text style={styles.lessonText}>Bài {index+1}. {video.namelesson}</Text>
-                                            <Text style={styles.lessonTime}>{video.timelesson}</Text>
-                                    </TouchableOpacity>
-                                ))
-                            }
+  dataLesson.map((lesson, index) => (
+    <TouchableOpacity
+      key={lesson.id}
+      style={styles.lessonItem}
+      onPress={() => setSelectedVideoUrl(lesson.video_url)} // Hiển thị video dựa trên URL
+    >
+      <Text style={styles.lessonText}>{`Lesson ${index + 1}: ${lesson.name}`}</Text>
+      <Text style={styles.lessonTime}>{lesson.duration}</Text>
+    </TouchableOpacity>
+  ))
+}
                         </ScrollView>
                     );
 
@@ -294,7 +295,7 @@ export default function CourseDetail({ navigation,route }) {
                     {dataCourses.name}
                 </Text>
                 <Text style={styles.courseInfo}>
-                    ⭐ {dataCourses.star} • {dataCourses.lesson} lessons
+                    ⭐ {dataCourses.rating} • {dataCourses.lessons} lessons
                 </Text>
             </View>
 

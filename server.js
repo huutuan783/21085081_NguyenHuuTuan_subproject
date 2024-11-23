@@ -243,39 +243,38 @@ app.delete("/cart/remove", (req, res) => {
 // API: Lấy danh sách giỏ hàng
 app.get("/cart/:userId", (req, res) => {
   const { userId } = req.params;
-
   const query = `
-    SELECT c.id as cart_id, courses.* 
-    FROM cart c 
-    JOIN courses ON c.course_id = courses.id 
-    WHERE c.user_id = ?`;
+      SELECT c.id as cart_id, courses.* 
+      FROM cart c 
+      JOIN courses ON c.course_id = courses.id 
+      WHERE c.user_id = ?`;
   db.query(query, [userId], (err, result) => {
-    if (err) {
-      console.error("Lỗi khi lấy giỏ hàng:", err);
-      return res.status(500).json({ error: "Internal server error" });
-    }
-
-    res.status(200).json(result);
+      if (err) {
+          console.error("Error fetching cart data:", err);
+          return res.status(500).json({ error: "Internal server error" });
+      }
+      console.log("Cart data:", result); // Debugging
+      res.status(200).json(result);
   });
 });
 
 
-// API: Lấy đánh giá cho một khóa học
+
+// API: Lấy danh sách bình luận
 app.get("/reviews/:courseId", (req, res) => {
   const { courseId } = req.params;
 
   const query = "SELECT * FROM reviews WHERE course_id = ?";
   db.query(query, [courseId], (err, result) => {
     if (err) {
-      console.error("Lỗi khi lấy đánh giá:", err);
+      console.error("Lỗi khi lấy bình luận:", err);
       return res.status(500).json({ error: "Internal server error" });
     }
 
     res.status(200).json(result);
   });
 });
-
-// API: Thêm đánh giá mới
+  //API:Gửi bình luận mới:
 app.post("/reviews", (req, res) => {
   const { userId, courseId, rating, comment } = req.body;
 
@@ -283,10 +282,10 @@ app.post("/reviews", (req, res) => {
     return res.status(400).json({ error: "All fields are required!" });
   }
 
-  const query = "INSERT INTO reviews (user_id, course_id, rating, comment) VALUES (?, ?, ?, ?)";
+  const query = "INSERT INTO reviews (user_id, course_id, rating, comment, created_at) VALUES (?, ?, ?, ?, NOW())";
   db.query(query, [userId, courseId, rating, comment], (err, result) => {
     if (err) {
-      console.error("Lỗi khi thêm đánh giá:", err);
+      console.error("Lỗi khi thêm bình luận:", err);
       return res.status(500).json({ error: "Internal server error" });
     }
 
@@ -309,7 +308,7 @@ app.get("/courses/:id", (req, res) => {
       return res.status(404).json({ error: "Course not found!" });
     }
 
-    res.status(200).json(result[0]);
+    res.status(200).json(result[0]); // Trả về dữ liệu chi tiết của khóa học
   });
 });
 
@@ -331,6 +330,54 @@ app.get("/dataUser/:id", (req, res) => {
     res.status(200).json(result[0]);
   });
 });
+
+// API: Lấy danh sách khóa học của người dùng
+app.get("/mycourse/:userId", (req, res) => {
+  const { userId } = req.params;
+  console.log(userId);
+  
+
+  const query = `
+    SELECT 
+      my_courses.id AS my_course_id,
+      my_courses.progress,
+      my_courses.completed,
+      courses.id AS course_id,
+      courses.name,
+      courses.banner,
+      courses.lessons,
+      courses.rating
+    FROM my_courses
+    JOIN courses ON my_courses.course_id = courses.id
+    WHERE my_courses.user_id = ?`;
+
+  db.query(query, [userId], (err, result) => {
+    if (err) {
+      console.error("Lỗi khi lấy danh sách khóa học của người dùng:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+
+    console.log("Dữ liệu trả về:", result); // Kiểm tra dữ liệu trả về từ database
+    res.status(200).json(result);
+  });
+});
+
+
+app.post("/mycourse/add", (req, res) => {
+  const { userId, courseId } = req.body;
+  const query = `
+      INSERT INTO my_courses (user_id, course_id, progress, completed, created_at) 
+      VALUES (?, ?, 0, 0, NOW())`;
+
+  db.query(query, [userId, courseId], (err, result) => {
+      if (err) {
+          console.error("Error adding course to my_courses:", err);
+          return res.status(500).json({ error: "Internal server error" });
+      }
+      res.status(201).json({ message: "Course added to my_courses successfully!" });
+  });
+});
+
 // Start server
 const PORT = 3000;
 app.listen(PORT, () => {

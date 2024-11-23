@@ -7,20 +7,23 @@ export default function MyCourses({ navigation ,route}) {
   const [dataCourses,setDataCourses] = useState([])
   const [loadingDataCourses,setLoadingDataCourses] = useState(true)
 
+  console.log(userId);
+  
 
     
-    const fetchDataCourses = async () =>{
-        try {
-         const response = await fetch(`http://localhost:3000/mycourse/${userId}`)
-         const json = await response.json()
-         setDataCourses(json)
-        } catch (error) {
-             console.error("Khong load duoc API")
-        }
-        finally{
-            setLoadingDataCourses(false)
-        }
-     }
+  const fetchDataCourses = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/mycourse/${userId}`);
+      const json = await response.json();
+      console.log("Dữ liệu từ API:", json); // Debug dữ liệu trả về
+      setDataCourses(json);
+    } catch (error) {
+      console.error("Không load được API", error);
+    } finally {
+      setLoadingDataCourses(false);
+    }
+  };
+  
  
      useEffect(()=>{
         fetchDataCourses()
@@ -40,19 +43,30 @@ export default function MyCourses({ navigation ,route}) {
 
       {/* Course List */}
       <ScrollView style={styles.courseList}>
-        {
-          dataCourses.map((course,index) =>(
-            <TouchableOpacity style={styles.courseItem} key={index} onPress={()=>{navigation.navigate("FullCourse",{courseID:course._id,userID: userId})}}>
-              <Image source={{uri: `../assets/banner/${course.banner}`}} style={styles.courseImage} />
-              <View style={styles.courseDetails}>
-                <Text style={styles.courseTitle}>{course.name}</Text>
-                <Text style={styles.courseTime}>{course.lesson} lesson</Text>
-                <Text style={styles.courseProgress}>30% Complete</Text>
-              </View>
-            </TouchableOpacity>
-          ))
+  {dataCourses.length > 0 ? (
+    dataCourses.map((course, index) => (
+      <TouchableOpacity
+        key={index}
+        style={styles.courseItem}
+        onPress={() =>
+          navigation.navigate("FullCourse", { courseID: course.course_id, userID: userId })
         }
-      </ScrollView>
+      >
+        <Image source={{ uri: course.banner }} style={styles.courseImage} />
+        <View style={styles.courseDetails}>
+          <Text style={styles.courseTitle}>{course.name}</Text>
+          <Text style={styles.courseTime}>{course.lessons} lessons</Text>
+          <Text style={styles.courseProgress}>{course.progress}% Complete</Text>
+        </View>
+      </TouchableOpacity>
+    ))
+  ) : (
+    <Text style={styles.noData}>You have no courses enrolled.</Text>
+  )}
+</ScrollView>
+
+
+
 
       {/* Footer */}
       <View style={styles.footer}>
@@ -119,29 +133,40 @@ const styles = StyleSheet.create({
   courseItem: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 15,
+    backgroundColor: "#f8f8f8",
+    padding: 10,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   courseImage: {
     width: 80,
     height: 80,
-    borderRadius: 10,
+    borderRadius: 8,
   },
   courseDetails: {
     marginLeft: 15,
+    flex: 1,
   },
   courseTitle: {
     fontSize: 16,
     fontWeight: "bold",
+    marginBottom: 5,
   },
   courseTime: {
     fontSize: 14,
     color: "#666",
-    marginVertical: 5,
+    marginBottom: 5,
   },
   courseProgress: {
     fontSize: 14,
     color: "#00bdd5",
   },
+  
   footer: {
     flexDirection: "row",
     justifyContent: "space-around",

@@ -11,13 +11,15 @@ export default function ScreenCart({ navigation,route }) {
         try {
             const response = await fetch(`http://localhost:3000/cart/${idUser}`);
             const json = await response.json();
+            console.log("Cart data from API:", json); // Debugging
             setDataCourses(json);
         } catch (error) {
-            console.error("Không thể load được API");
+            console.error("Error fetching cart data:", error);
         } finally {
             setLoadingDataCourses(false);
         }
     };
+    
 
     const addToCourseOfUser = async (courseId) => {
         setLoading(true);
@@ -66,7 +68,7 @@ export default function ScreenCart({ navigation,route }) {
 
             if (response.ok) {
                 // Cập nhật lại dữ liệu giỏ hàng sau khi xóa khóa học
-                setDataCourses(dataCourses.filter(course => course._id !== courseId));
+                setDataCourses(dataCourses.filter(course => course.id !== courseId));
                 Alert.alert("Success", "Course removed from cart!");
             } else {
                 Alert.alert("Error", result.error || "Something went wrong.");
@@ -108,7 +110,7 @@ export default function ScreenCart({ navigation,route }) {
                 <View style={styles.courseList}>
                     {dataCourses.map((course, index) => (
                         <View key={index} style={styles.courseItem}>
-                            <Image source={{uri: `../assets/banner/${course.banner}`}} style={styles.courseImage} />
+                            <Image source={{ uri: course.banner }} style={styles.courseImage} />
                             <View style={styles.courseDetails}>
                                 <Text style={styles.courseTitle}>{course.name}</Text>
                                 <Text style={styles.coursePrice}>${course.price}</Text>

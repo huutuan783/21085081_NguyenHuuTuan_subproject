@@ -77,13 +77,15 @@ export default function FullCourse({ navigation,route }) {
             const response = await fetch(`http://localhost:3000/courses/${idCourse}`);
             const json = await response.json();
             setDataCourses(json);
+            console.log(dataCourses);
+            
         } catch (error) {
             console.error("Không load được API");
         } finally {
             setLoadingDataCourses(false);
         }
     };
-
+    
     useEffect(() => {
         fetchDataCourses();
     }, []);
@@ -106,6 +108,7 @@ export default function FullCourse({ navigation,route }) {
         fetchDataLesson();
     }, []);
 
+    console.log(dataCourses);
 
     // Hàm để render nội dung theo tab
     const renderContent = () => {
@@ -211,13 +214,13 @@ export default function FullCourse({ navigation,route }) {
 
             {/* Course Title */}
             <View style={styles.titleContainer}>
-                <Text style={styles.courseTitle}>
-                    {dataCourses.name}
-                </Text>
-                <Text style={styles.courseInfo}>
-                    ⭐ {dataCourses.star} (5312) • {dataCourses.lesson} lessons
-                </Text>
-            </View>
+    <Text style={styles.courseTitle}>
+        {dataCourses.name}
+    </Text>
+    <Text style={styles.courseInfo}>
+        ⭐ {dataCourses.rating} ({dataCourses.lessons} lessons) {/* Thêm rating và số lượng bài học */}
+    </Text>
+</View>
 
             {/* Navigation Tabs */}
             <View style={styles.tabContainer}>
@@ -279,6 +282,9 @@ const styles = StyleSheet.create({
     },
     titleContainer: {
         padding: 16,
+        backgroundColor: '#f8f8f8',
+        borderBottomWidth: 1,
+        borderBottomColor: '#ddd',
     },
     courseTitle: {
         fontSize: 20,
@@ -286,6 +292,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     courseInfo: {
+        fontSize: 16,
         color: '#6e6e6e',
     },
     tabContainer: {

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 export default function ScreenHomeCourse({navigation,route}) {
 
     const  userId  = route.params.userID;
-    console.log(userId);
+    // console.log(userId);
     
     const [activeTab, setActiveTab] = useState('home');
     const [dataUser,setDataUser] = useState({})
