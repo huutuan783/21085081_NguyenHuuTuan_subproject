@@ -15,12 +15,12 @@ import MyCourses from './screens/MyCourses';
 import ProfileUser from './screens/ProfileUser';
 import ProfileTeacher from './screens/ProfileTeacher';
 import ScreenCart from './screens/ScreenCart';
-import UserFormScreen from './screens/UserFormScreen';
 import SearchOfTeacher from './screens/SearchOfTeacher';
 import TeacherCourse from './screens/TeacherCourse';
 import CourseDetailTeacher from './screens/CourseDetailTeacher';
 import EditCourse from './screens/EditCourse';
 import AddCourse from './screens/AddCourse';
+import Updateprofile from './screens/updateprofile';
 const Stack = createNativeStackNavigator()
 export default function App() {
   return (
@@ -43,7 +43,7 @@ export default function App() {
         <Stack.Screen name = "CourseDetailTeacher" component={CourseDetailTeacher}/> 
         <Stack.Screen name = "EditCourse" component={EditCourse}/> 
         <Stack.Screen name = "AddCourse" component={AddCourse}/> 
-        
+        <Stack.Screen name = "Updateprofile" component={Updateprofile}/> 
 
 
       </Stack.Navigator>

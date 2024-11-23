@@ -472,6 +472,58 @@ app.get('/dataUser/:userId', async (req, res) => {
   }
 });
 
+app.put("/users/update/:id", (req, res) => {
+  const { id } = req.params;
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ error: "Username and password are required!" });
+  }
+
+  // Hash the password
+  const bcrypt = require("bcrypt");
+  bcrypt.hash(password, 10, (err, hashedPassword) => {
+    if (err) {
+      console.error("Error hashing password:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+
+    // Update the database
+    const query = "UPDATE users SET username = ?, password = ? WHERE id = ?";
+    db.query(query, [username, hashedPassword, id], (err, result) => {
+      if (err) {
+        console.error("Error updating user:", err);
+        return res.status(500).json({ error: "Internal server error" });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "User not found!" });
+      }
+
+      res.status(200).json({ message: "User updated successfully!" });
+    });
+  });
+});
+
+// API: Delete User Profile
+app.delete("/users/delete/:id", (req, res) => {
+  const { id } = req.params;
+
+  const query = "DELETE FROM users WHERE id = ?";
+  db.query(query, [id], (err, result) => {
+    if (err) {
+      console.error("Error deleting user:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "User not found!" });
+    }
+
+    res.status(200).json({ message: "User deleted successfully!" });
+  });
+});
+
 // Start server
 const PORT = 3000;
 app.listen(PORT, () => {
