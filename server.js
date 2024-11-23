@@ -161,23 +161,46 @@ app.post("/login", (req, res) => {
   });
 
   // API: Lấy danh sách bài học của khóa học
-  app.get("/lessons/:courseId", (req, res) => {
-    const { courseId } = req.params;
 
-    const query = "SELECT * FROM lessons WHERE course_id = ?";
-    db.query(query, [courseId], (err, result) => {
-        if (err) {
-            console.error("Lỗi khi lấy danh sách bài học:", err);
-            return res.status(500).json({ error: "Internal server error" });
-        }
+app.get("/lessons/:courseId", (req, res) => {
+  const { courseId } = req.params;
 
-        if (!Array.isArray(result)) {
-            return res.status(404).json([]);
-        }
+  const query = "SELECT * FROM lessons WHERE course_id = ?";
+  db.query(query, [courseId], (err, result) => {
+      if (err) {
+          console.error("Lỗi khi lấy danh sách bài học:", err);
+          return res.status(500).json({ error: "Internal server error" });
+      }
 
-        res.status(200).json(result);
-    });
+      res.status(200).json(Array.isArray(result) ? result : []); // Đảm bảo trả về mảng
+  });
 });
+
+app.get("/lessons/first/:courseId", (req, res) => {
+  const { courseId } = req.params;
+  
+
+  const query = `
+    SELECT * 
+    FROM lessons 
+    WHERE course_id = ? 
+    ORDER BY updated_at ASC 
+    LIMIT 1`;
+
+  db.query(query, [courseId], (err, result) => {
+    if (err) {
+      console.error("Error fetching first lesson:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+
+    if (result.length === 0) {
+      return res.status(404).json({ error: "No lessons found for this course." });
+    }
+
+    res.status(200).json(result[0]);
+  });
+});
+
 
 
 // API: Thêm bài học mới

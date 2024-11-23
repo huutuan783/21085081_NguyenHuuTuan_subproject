@@ -15,7 +15,7 @@ export default function CourseDetail({ navigation,route }) {
 
     const [dataLesson, setDataLesson] = useState({});
     const [loadingDataLesson, setLoadingDataLesson] = useState(true);
-      
+    const [firstLesson, setFirstLesson] = useState(null);
       
 
     const fetchDataCourses = async () => {
@@ -110,7 +110,24 @@ export default function CourseDetail({ navigation,route }) {
     setLoading(false);
   }
 };
+const fetchFirstLesson = async () => {
+    try {
+        const response = await fetch(`http://localhost:3000/lessons/first/${idCourse}`);
+        if (!response.ok) {
+            throw new Error("Failed to fetch first lesson");
+        }
+        const lesson = await response.json();
+        setFirstLesson(lesson);
+        setSelectedVideoUrl(lesson.video_url); // Gán URL video từ bài học đầu tiên
+    } catch (error) {
+        console.error("Error fetching first lesson:", error);
+    }
+};
 
+  
+  useEffect(() => {
+    fetchFirstLesson();
+  }, []);
     
 
 
@@ -282,19 +299,19 @@ export default function CourseDetail({ navigation,route }) {
 
             {/* Banner */}
             <View>
-                    {selectedVideoUrl ? (
-                        <YoutubeIframe
-                            key={selectedVideoUrl}
-                            height={200}
-                            play={true}
-                            videoId={selectedVideoUrl} // Chỉ cần ID của video
-                        />
-                    ) : (
-                        <Image
-                        source={{uri: `../assets/banner/${dataCourses.banner}`}}
-                            style={{ width: '100%', height: 200 }}
-                        />
-                    )}
+            {selectedVideoUrl ? (
+    <YoutubeIframe
+        key={selectedVideoUrl}
+        height={200}
+        play={true}
+        videoId={selectedVideoUrl} // Chỉ lấy phần video ID
+    />
+) : (
+    <Image
+        source={{ uri: `../assets/banner/${dataCourses.banner}` }}
+        style={{ width: '100%', height: 200 }}
+    />
+)}
                     
              </View>
 

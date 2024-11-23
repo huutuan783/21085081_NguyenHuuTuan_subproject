@@ -25,6 +25,7 @@ export default function FullCourse({ navigation,route }) {
 
     const [dataMyProfile,setDataMyProfile] = useState([])
     const [loadingDataMyProfile,setLoadingDataMyProfile] = useState(true)
+    const [firstLesson, setFirstLesson] = useState(null);
   
 
     const fetchDataUser = async () =>{
@@ -44,6 +45,25 @@ export default function FullCourse({ navigation,route }) {
         fetchDataUser()
       
      },[])
+
+     const fetchFirstLesson = async () => {
+        try {
+            const response = await fetch(`http://localhost:3000/lessons/first/${idCourse}`);
+            if (!response.ok) {
+                throw new Error("Failed to fetch first lesson");
+            }
+            const lesson = await response.json();
+            setFirstLesson(lesson);
+            setSelectedVideoUrl(lesson.video_url); // Gán URL video từ bài học đầu tiên
+        } catch (error) {
+            console.error("Error fetching first lesson:", error);
+        }
+    };
+    
+      
+      useEffect(() => {
+        fetchFirstLesson();
+      }, []);
 
 
 
@@ -119,21 +139,22 @@ export default function FullCourse({ navigation,route }) {
                 return (
                     <ScrollView style={styles.lessonList}>
                         {Array.isArray(dataLesson) && dataLesson.length > 0 ? (
-                            dataLesson.map((lesson, index) => (
-                                <TouchableOpacity
-                                    key={index}
-                                    style={styles.lessonItem}
-                                    onPress={() => setSelectedVideoUrl(lesson.linkId)}
-                                >
-                                    <Text style={styles.lessonText}>
-                                        Bài {index + 1}. {lesson.namelesson}
-                                    </Text>
-                                    <Text style={styles.lessonTime}>{lesson.timelesson}</Text>
-                                </TouchableOpacity>
-                            ))
-                        ) : (
-                            <Text style={styles.noData}>No lessons available</Text>
-                        )}
+    dataLesson.map((lesson, index) => (
+        <TouchableOpacity
+            key={index}
+            style={styles.lessonItem}
+            onPress={() => setSelectedVideoUrl(lesson.video_url)} // Sử dụng đúng trường `video_url`
+        >
+            <Text style={styles.lessonText}>
+                Bài {index + 1}. {lesson.name}
+            </Text>
+            <Text style={styles.lessonTime}>{lesson.duration}</Text>
+        </TouchableOpacity>
+    ))
+) : (
+    <Text style={styles.noData}>No lessons available</Text>
+)}
+
                     </ScrollView>
                 );
                 case 'Q&A':
@@ -202,21 +223,20 @@ export default function FullCourse({ navigation,route }) {
 
             {/* Banner */}
             <View>
-                    {selectedVideoUrl ? (
-                        <YoutubeIframe
-                            key={selectedVideoUrl}
-                            height={200}
-                            play={true}
-                            videoId={selectedVideoUrl} // Chỉ cần ID của video
-                        />
-                    ) : (
-                        <Image
-                            source={{uri: `../assets/banner/${dataCourses.banner}`}}
-                            style={{ width: '100%', height: 200 }}
-                        />
-                    )}
-                    
-             </View>
+            {selectedVideoUrl ? (
+    <YoutubeIframe
+        key={selectedVideoUrl}
+        height={200}
+        play={true}
+        videoId={selectedVideoUrl} // Chỉ lấy phần video ID
+    />
+) : (
+    <Image
+        source={{ uri: `../assets/banner/${dataCourses.banner}` }}
+        style={{ width: '100%', height: 200 }}
+    />
+)}
+</View>
 
             {/* Course Title */}
             <View style={styles.titleContainer}>

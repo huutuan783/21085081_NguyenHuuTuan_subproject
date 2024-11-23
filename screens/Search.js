@@ -5,6 +5,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 export default function Search({ navigation,route }) {
     const userId = route.params.userID
+    const idCourse = route.params.courseID
     const topics = ["NodeJS","ReactJS","HTML CSS","Responsive"];
     const categories = [
         { name: "Business", icon: "business-center" },
@@ -108,7 +109,7 @@ export default function Search({ navigation,route }) {
                             <Text style={styles.sectionTitle}>{filteredCourses.length} Results</Text>
                             {filteredCourses.length > 0 ? (
                                 filteredCourses.map(course => (
-                                    <TouchableOpacity key={course._id} style={styles.courseItem} onPress={()=>{navigation.navigate("CourseDetail",{courseID:course._id})}}>
+                                    <TouchableOpacity key={course._id} style={styles.courseItem} onPress={()=>{navigation.navigate("CourseDetail",{ courseID: idCourse, userID: userId })}}>
                                         <Image source={{ uri: course.banner }} style={styles.courseImage} />
                                         <View style={styles.courseInfo}>
                                             <Text style={styles.courseName}>{course.name}</Text>
@@ -138,7 +139,7 @@ export default function Search({ navigation,route }) {
             <View style={styles.recommendedContainer}>
             {
                     dataCourses.slice(2,4).map((course,index) => (
-                        <TouchableOpacity style={styles.courseItem} key={index} onPress={()=>{navigation.navigate("CourseDetail",{courseID:course._id})}}>             
+                        <TouchableOpacity style={styles.courseItem} key={index} onPress={()=>{navigation.navigate("CourseDetail",{ courseID: idCourse, userID: userId })}}>             
                            
                                 <Image source={{uri:course.banner}} style={styles.courseImage} />
                                 <Text style={styles.courseTitle}>{course.name}</Text>
