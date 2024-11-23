@@ -161,23 +161,24 @@ app.post("/login", (req, res) => {
   });
 
   // API: Lấy danh sách bài học của khóa học
-app.get("/lessons/:courseId", (req, res) => {
-  const { courseId } = req.params;
+  app.get("/lessons/:courseId", (req, res) => {
+    const { courseId } = req.params;
 
-  const query = "SELECT * FROM lessons WHERE course_id = ?";
-  db.query(query, [courseId], (err, result) => {
-    if (err) {
-      console.error("Lỗi khi lấy danh sách bài học:", err);
-      return res.status(500).json({ error: "Internal server error" });
-    }
+    const query = "SELECT * FROM lessons WHERE course_id = ?";
+    db.query(query, [courseId], (err, result) => {
+        if (err) {
+            console.error("Lỗi khi lấy danh sách bài học:", err);
+            return res.status(500).json({ error: "Internal server error" });
+        }
 
-    if (result.length === 0) {
-      return res.status(404).json({ error: "No lessons found for this course" });
-    }
+        if (!Array.isArray(result)) {
+            return res.status(404).json([]);
+        }
 
-    res.status(200).json(result);
-  });
+        res.status(200).json(result);
+    });
 });
+
 
 // API: Thêm bài học mới
 app.post("/lessons", (req, res) => {
@@ -199,6 +200,7 @@ app.post("/lessons", (req, res) => {
 });
 
 // API: Thêm khóa học vào giỏ hàng
+// API: Add course to cart
 app.post("/cart/add", (req, res) => {
   const { userId, courseId } = req.body;
 
@@ -206,16 +208,32 @@ app.post("/cart/add", (req, res) => {
     return res.status(400).json({ error: "User ID and Course ID are required!" });
   }
 
-  const query = "INSERT INTO cart (user_id, course_id, created_at) VALUES (?, ?, NOW())";
-  db.query(query, [userId, courseId], (err, result) => {
+  // Check if the course is already in the cart
+  const checkQuery = "SELECT * FROM cart WHERE user_id = ? AND course_id = ?";
+  db.query(checkQuery, [userId, courseId], (err, result) => {
     if (err) {
-      console.error("Lỗi khi thêm vào giỏ hàng:", err);
+      console.error("Error checking course in cart:", err);
       return res.status(500).json({ error: "Internal server error" });
     }
 
-    res.status(201).json({ message: "Course added to cart successfully!" });
+    if (result.length > 0) {
+      // Course already exists in the cart
+      return res.status(409).json({ error: "Course is already in the cart!" });
+    }
+
+    // If not found, proceed with adding the course to the cart
+    const insertQuery = "INSERT INTO cart (user_id, course_id, created_at) VALUES (?, ?, NOW())";
+    db.query(insertQuery, [userId, courseId], (err, result) => {
+      if (err) {
+        console.error("Error adding to cart:", err);
+        return res.status(500).json({ error: "Internal server error" });
+      }
+
+      res.status(201).json({ message: "Course added to cart successfully!" });
+    });
   });
 });
+
 
 // API: Xóa khóa học khỏi giỏ hàng
 app.delete("/cart/remove", (req, res) => {
@@ -365,16 +383,58 @@ app.get("/mycourse/:userId", (req, res) => {
 
 app.post("/mycourse/add", (req, res) => {
   const { userId, courseId } = req.body;
-  const query = `
-      INSERT INTO my_courses (user_id, course_id, progress, completed, created_at) 
-      VALUES (?, ?, 0, 0, NOW())`;
 
-  db.query(query, [userId, courseId], (err, result) => {
+  if (!userId || !courseId) {
+      return res.status(400).json({ error: "User ID and Course ID are required!" });
+  }
+
+  // Kiểm tra trùng lặp
+  const checkQuery = "SELECT * FROM my_courses WHERE user_id = ? AND course_id = ?";
+  db.query(checkQuery, [userId, courseId], (err, result) => {
       if (err) {
-          console.error("Error adding course to my_courses:", err);
+          console.error("Error checking my_courses:", err);
           return res.status(500).json({ error: "Internal server error" });
       }
-      res.status(201).json({ message: "Course added to my_courses successfully!" });
+
+      if (result.length > 0) {
+          return res.status(409).json({ error: "Course is already in your courses!" });
+      }
+
+      // Thêm mới nếu không trùng lặp
+      const insertQuery = `
+          INSERT INTO my_courses (user_id, course_id, progress, completed, created_at) 
+          VALUES (?, ?, 0, 0, NOW())`;
+      db.query(insertQuery, [userId, courseId], (err, result) => {
+          if (err) {
+              console.error("Error adding to my_courses:", err);
+              return res.status(500).json({ error: "Internal server error" });
+          }
+          res.status(201).json({ message: "Course added to my_courses successfully!" });
+      });
+  });
+});
+
+
+
+app.post('/mycourse/check', (req, res) => {
+  const { userId, courseId } = req.body;
+
+  if (!userId || !courseId) {
+      return res.status(400).json({ error: "User ID and Course ID are required!" });
+  }
+
+  const query = "SELECT * FROM my_courses WHERE user_id = ? AND course_id = ?";
+  db.query(query, [userId, courseId], (err, result) => {
+      if (err) {
+          console.error("Error checking course:", err);
+          return res.status(500).json({ error: "Internal server error" });
+      }
+
+      if (result.length > 0) {
+          return res.status(200).json({ exists: true });
+      }
+
+      res.status(200).json({ exists: false });
   });
 });
 

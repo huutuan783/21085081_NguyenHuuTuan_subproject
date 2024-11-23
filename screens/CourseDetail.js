@@ -53,54 +53,64 @@ export default function CourseDetail({ navigation,route }) {
 
 
 
-    const addToCart = async () => {
-        setLoading(true);
-        try {
-            const response = await fetch('http://localhost:3000/cart/add', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    userId: idUser,  // User ID (có thể lấy từ state hoặc context nếu có)
-                    courseId: idCourse,  // Course ID
-                }),
-            });
-            const data = await response.json();
-    
-            if (response.ok) {
-                // Hiển thị Toast khi thành công
-                Toast.show({
-                    type: 'success',
-                    text1: 'Success',
-                    text2: 'Course added to cart successfully! 🎉',
-                    position: 'top',
-                    visibilityTime: 3000,
-                });
-                navigation.navigate("ScreenCart", { userID: idUser });
-            } else {
-                // Hiển thị Toast khi lỗi
-                Toast.show({
-                    type: 'error',
-                    text1: 'Error',
-                    text2: data.error || 'Something went wrong.',
-                    position: 'top',
-                    visibilityTime: 3000,
-                });
-            }
-        } catch (error) {
-            // Hiển thị Toast khi gặp lỗi ngoại lệ
-            Toast.show({
-                type: 'error',
-                text1: 'Error',
-                text2: 'Failed to add course to cart.',
-                position: 'top',
-                visibilityTime: 3000,
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
+   const addToCart = async () => {
+  setLoading(true);
+  try {
+    const response = await fetch('http://localhost:3000/cart/add', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: idUser,  // User ID (có thể lấy từ state hoặc context nếu có)
+        courseId: idCourse,  // Course ID
+      }),
+    });
+    const data = await response.json();
+
+    if (response.ok) {
+      // Hiển thị Toast khi thành công
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: 'Course added to cart successfully! 🎉',
+        position: 'top',
+        visibilityTime: 3000,
+      });
+      navigation.navigate("ScreenCart", { userID: idUser });
+    } else if (response.status === 409) {
+      // Khóa học đã tồn tại trong giỏ hàng
+      Toast.show({
+        type: 'info',
+        text1: 'Duplicate Course',
+        text2: 'This course is already in your cart.',
+        position: 'top',
+        visibilityTime: 3000,
+      });
+    } else {
+      // Hiển thị Toast khi lỗi
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: data.error || 'Something went wrong.',
+        position: 'top',
+        visibilityTime: 3000,
+      });
+    }
+  } catch (error) {
+    // Hiển thị Toast khi gặp lỗi ngoại lệ
+    Toast.show({
+      type: 'error',
+      text1: 'Error',
+      text2: 'Failed to add course to cart.',
+      position: 'top',
+      visibilityTime: 3000,
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
     
 
 

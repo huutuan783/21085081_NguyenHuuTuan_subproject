@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import YoutubeIframe from 'react-native-youtube-iframe';
 export default function FullCourse({ navigation,route }) {
     const idCourse = route.params.courseID
+
     const idUser = route.params.userID
     console.log(idUser);
     
@@ -93,16 +94,17 @@ export default function FullCourse({ navigation,route }) {
 
 
     const fetchDataLesson = async () => {
-        try {
-            const response = await fetch(`http://localhost:3000/lessons/${idCourse}`);
-            const json = await response.json();
-            setDataLesson(json);
-        } catch (error) {
-            console.error("Không load được API");
-        } finally {
-            setLoadingDataLesson(false);
-        }
-    };
+    try {
+        const response = await fetch(`http://localhost:3000/lessons/${idCourse}`);
+        const json = await response.json();
+        console.log("Dữ liệu bài học:", json); // Debug API response
+        setDataLesson(Array.isArray(json) ? json : []); // Đảm bảo setDataLesson là mảng
+    } catch (error) {
+        console.error("Không load được API:", error);
+    } finally {
+        setLoadingDataLesson(false);
+    }
+};
 
     useEffect(() => {
         fetchDataLesson();
@@ -113,21 +115,25 @@ export default function FullCourse({ navigation,route }) {
     // Hàm để render nội dung theo tab
     const renderContent = () => {
         switch (selectedTab) {
-           
             case 'lessons':
                 return (
                     <ScrollView style={styles.lessonList}>
-                             {
-                                dataLesson.map((lesson,index) =>(
-                                    <TouchableOpacity
-                                            style={styles.lessonItem}
-                                            onPress={() => setSelectedVideoUrl(lesson.linkId)} // Chỉ cần ID video
-                                        >
-                                            <Text style={styles.lessonText}>Bài {index+1}. {lesson.namelesson}</Text>
-                                            <Text style={styles.lessonTime}>{lesson.timelesson}</Text>
-                                    </TouchableOpacity>      
-                                ))
-                             }
+                        {Array.isArray(dataLesson) && dataLesson.length > 0 ? (
+                            dataLesson.map((lesson, index) => (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={styles.lessonItem}
+                                    onPress={() => setSelectedVideoUrl(lesson.linkId)}
+                                >
+                                    <Text style={styles.lessonText}>
+                                        Bài {index + 1}. {lesson.namelesson}
+                                    </Text>
+                                    <Text style={styles.lessonTime}>{lesson.timelesson}</Text>
+                                </TouchableOpacity>
+                            ))
+                        ) : (
+                            <Text style={styles.noData}>No lessons available</Text>
+                        )}
                     </ScrollView>
                 );
                 case 'Q&A':

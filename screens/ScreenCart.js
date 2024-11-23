@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Alert } from "react-native";
 
-export default function ScreenCart({ navigation,route }) {
-    const idUser = route.params.userID
+export default function ScreenCart({ navigation, route }) {
+    const idUser = route.params.userID;
     const [loadingDataCourses, setLoadingDataCourses] = useState(true);
     const [dataCourses, setDataCourses] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -19,39 +19,46 @@ export default function ScreenCart({ navigation,route }) {
             setLoadingDataCourses(false);
         }
     };
+
+    // const addToCourseOfUser = async (courseId) => {
+    //     setLoading(true);
+    //     try {
+    //       const response = await fetch('http://localhost:3000/cart/add', {
+    //         method: 'POST',
+    //         headers: {
+    //           'Content-Type': 'application/json',
+    //         },
+    //         body: JSON.stringify({
+    //           userId: idUser,
+    //           courseId: courseId,
+    //         }),
+    //       });
+      
+    //       const data = await response.json();
+      
+    //       if (response.ok) {
+    //         Alert.alert("Success", "Course added to your cart!");
+    //         return true;
+    //       } else if (response.status === 409) {
+    //         // Handle duplicate course error
+    //         Alert.alert("Duplicate Course", data.error || "This course is already in your cart.");
+    //         return false;
+    //       } else {
+    //         Alert.alert("Error", data.error || "Something went wrong.");
+    //         return false;
+    //       }
+    //     } catch (error) {
+    //       Alert.alert("Error", "Failed to add course to your cart.");
+    //       return false;
+    //     } finally {
+    //       setLoading(false);
+    //     }
+    //   };
+      
     
 
-    const addToCourseOfUser = async (courseId) => {
-        setLoading(true);
-        try {
-            const response = await fetch('http://localhost:3000/mycourse/add', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    userId: idUser,  // User ID (có thể lấy từ state hoặc context nếu có)
-                    courseId: courseId,  // Course ID
-                }),
-            });
-            const data = await response.json();
-
-            if (response.ok) {
-                Alert.alert("Success", "Course added to my course successfully!");
-                return true;
-            } else {
-                Alert.alert("Error", data.error || "Something went wrong.");
-                return false;
-            }
-        } catch (error) {
-            Alert.alert("Error", "Failed to add course to my course.");
-            return false;
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const deleteFromCart = async (courseId) => {
+        setLoading(true);
         try {
             const response = await fetch(`http://localhost:3000/cart/remove`, {
                 method: 'DELETE',
@@ -59,35 +66,78 @@ export default function ScreenCart({ navigation,route }) {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    userId: idUser, // ID của người dùng, có thể lấy từ context hoặc state
-                    courseId: courseId, // ID của khóa học cần xóa
+                    userId: idUser,
+                    courseId: courseId,
                 }),
             });
 
             const result = await response.json();
 
             if (response.ok) {
-                // Cập nhật lại dữ liệu giỏ hàng sau khi xóa khóa học
                 setDataCourses(dataCourses.filter(course => course.id !== courseId));
                 Alert.alert("Success", "Course removed from cart!");
             } else {
                 Alert.alert("Error", result.error || "Something went wrong.");
             }
         } catch (error) {
-            console.error("Error deleting course", error);
+            console.error("Error deleting course:", error);
             Alert.alert("Error", "Failed to remove course from cart.");
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleBuyButton = async (course) => {
-        const addedToCourse = await addToCourseOfUser(course._id);
-
-        if (addedToCourse) {
-            await deleteFromCart(course._id);  // Only delete after successfully adding to the courseOfUser
-            navigation.navigate("FullCourse", { courseID: course._id , userID: idUser});
+        try {
+            // Kiểm tra xem khóa học đã tồn tại trong "my_courses"
+            const checkResponse = await fetch(`http://localhost:3000/mycourse/check`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: idUser,
+                    courseId: course.id,
+                }),
+            });
+    
+            const checkResult = await checkResponse.json();
+    
+            if (checkResponse.ok && checkResult.exists) {
+                Alert.alert("Duplicate Course", "You have already purchased this course.");
+                return;
+            }
+    
+            // Thêm vào "my_courses" nếu chưa tồn tại
+            const response = await fetch(`http://localhost:3000/mycourse/add`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: idUser,
+                    courseId: course.id,
+                }),
+            });
+    
+            const result = await response.json();
+    
+            if (response.ok) {
+                // Xóa khỏi giỏ hàng và chuyển hướng
+                await deleteFromCart(course.id);
+                Alert.alert("Success", "Course purchased successfully!");
+                navigation.navigate("FullCourse", { courseID: course.id, userID: idUser });
+            } else {
+                Alert.alert("Error", result.error || "Something went wrong.");
+            }
+        } catch (error) {
+            console.error("Error in handleBuyButton:", error);
+            Alert.alert("Error", "An error occurred while purchasing the course.");
         }
     };
-
+    
+    
+    
     useEffect(() => {
         fetchDataCourses();
     }, []);
@@ -108,21 +158,33 @@ export default function ScreenCart({ navigation,route }) {
                 <ActivityIndicator size="large" color="#00bdd5" style={styles.loadingIndicator} />
             ) : (
                 <View style={styles.courseList}>
-                    {dataCourses.map((course, index) => (
-                        <View key={index} style={styles.courseItem}>
-                            <Image source={{ uri: course.banner }} style={styles.courseImage} />
-                            <View style={styles.courseDetails}>
-                                <Text style={styles.courseTitle}>{course.name}</Text>
-                                <Text style={styles.coursePrice}>${course.price}</Text>
-                                <TouchableOpacity 
-                                    style={styles.buyButton}
-                                    onPress={() => handleBuyButton(course)}
-                                >
-                                    <Text style={styles.buyButtonText}>Buy</Text>
-                                </TouchableOpacity>
+                    {dataCourses.length > 0 ? (
+                        dataCourses.map((course, index) => (
+                            <View key={index} style={styles.courseItem}>
+                                <Image source={{ uri: course.banner }} style={styles.courseImage} />
+                                <View style={styles.courseDetails}>
+                                    <Text style={styles.courseTitle}>{course.name}</Text>
+                                    <Text style={styles.coursePrice}>${course.price}</Text>
+                                    <View style={styles.buttonContainer}>
+                                        <TouchableOpacity
+                                            style={styles.buyButton}
+                                            onPress={() => handleBuyButton(course)}
+                                        >
+                                            <Text style={styles.buyButtonText}>Buy</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={styles.deleteButton}
+                                            onPress={() => deleteFromCart(course.id)}
+                                        >
+                                            <Text style={styles.deleteButtonText}>Delete</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
                             </View>
-                        </View>
-                    ))}
+                        ))
+                    ) : (
+                        <Text style={styles.noData}>Your cart is empty.</Text>
+                    )}
                 </View>
             )}
         </ScrollView>
@@ -132,7 +194,7 @@ export default function ScreenCart({ navigation,route }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#f5f5f5",
+        backgroundColor: "white",
         paddingTop: 20,
     },
     loadingIndicator: {
@@ -177,15 +239,29 @@ const styles = StyleSheet.create({
         color: "red",
         marginBottom: 5,
     },
-    buyButton: {
+    buttonContainer: {
+        flexDirection: "row",
         marginTop: 10,
+    },
+    buyButton: {
         backgroundColor: "#00bdd5",
         paddingVertical: 8,
-        paddingHorizontal: 20,
+        paddingHorizontal: 15,
         borderRadius: 5,
-        alignSelf: "flex-start",
+        marginRight: 10,
     },
     buyButtonText: {
+        fontSize: 16,
+        color: "#fff",
+        fontWeight: "bold",
+    },
+    deleteButton: {
+        backgroundColor: "#ff4d4d",
+        paddingVertical: 8,
+        paddingHorizontal: 15,
+        borderRadius: 5,
+    },
+    deleteButtonText: {
         fontSize: 16,
         color: "#fff",
         fontWeight: "bold",
@@ -204,5 +280,11 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
+    },
+    noData: {
+        fontSize: 16,
+        textAlign: 'center',
+        marginTop: 50,
+        color: "#888",
     },
 });
