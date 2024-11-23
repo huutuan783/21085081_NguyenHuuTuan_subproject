@@ -33,6 +33,8 @@ const bcrypt = require("bcrypt");
 app.post("/register", async (req, res) => {
   const { username, email, password, sdt } = req.body;
 
+  const defaultImage= "https://imgur.com/Qkv0VaQ.jpeg";
+
   if (!username || !email || !password || !sdt) {
     return res.status(400).json({ error: "All fields are required!" });
   }
@@ -55,7 +57,7 @@ app.post("/register", async (req, res) => {
       "INSERT INTO users (username, email, password, phone, avatar, position) VALUES (?, ?, ?, ?, ?, ?)";
     db.query(
       insertUserQuery,
-      [username, email, hashedPassword, sdt, "default_avatar.png", "student"],
+      [username, email, hashedPassword, sdt, defaultImage, "student"],
       (err, result) => {
         if (err) {
           console.error("Lỗi khi thêm người dùng:", err);
@@ -459,6 +461,15 @@ app.post('/mycourse/check', (req, res) => {
 
       res.status(200).json({ exists: false });
   });
+});
+app.get('/dataUser/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const user = await db.query('SELECT * FROM users WHERE id = ?', [userId]);
+  if (user.length > 0) {
+      res.json(user[0]);
+  } else {
+      res.status(404).json({ error: "User not found" });
+  }
 });
 
 // Start server
