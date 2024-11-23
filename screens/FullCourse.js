@@ -28,6 +28,8 @@ export default function FullCourse({ navigation,route }) {
     const [firstLesson, setFirstLesson] = useState(null);
   
 
+    const [rating, setRating] = useState(5); // Default rating value
+
     const fetchDataUser = async () =>{
         try {
          const response = await fetch(`http://localhost:3000/dataUser/${idUser}`)
@@ -85,12 +87,58 @@ export default function FullCourse({ navigation,route }) {
     }, []);
 
 
-    const handleAddComment = () => {
-        if (newComment.trim() !== '') {
-            setComments([...comments, newComment.trim()]);
-            setNewComment(''); // Xóa nội dung bình luận sau khi đăng
+    
+    // Fetch comments
+    const fetchComments = async () => {
+        try {
+          const response = await fetch(`http://localhost:3000/reviews/${idCourse}`);
+          const json = await response.json();
+          console.log('Comments fetched:', json); // Kiểm tra dữ liệu API
+          setComments(json);
+        } catch (error) {
+          console.error('Error fetching comments:', error);
         }
-    };
+      };
+
+  useEffect(() => {
+    fetchComments();
+  }, []);
+
+  // Post new comment
+  const handleAddComment = async () => {
+    if (!newComment.trim()) {
+      Alert.alert('Error', 'Please write a comment before posting.');
+      return;
+    }
+  
+    try {
+      const response = await fetch('http://localhost:3000/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: idUser,
+          courseId: idCourse,
+          rating,
+          comment: newComment,
+        }),
+      });
+  
+      if (response.ok) {
+        // Fetch lại toàn bộ danh sách bình luận sau khi thêm thành công
+        fetchComments();
+        setNewComment(''); // Clear input sau khi gửi thành công
+      } else {
+        const error = await response.json();
+        Alert.alert('Error', error.message || 'Failed to post comment.');
+      }
+    } catch (error) {
+      console.error('Error posting comment:', error);
+      Alert.alert('Error', 'Failed to post comment.');
+    }
+  };
+  
     
 
     const fetchDataCourses = async () => {
@@ -162,27 +210,27 @@ export default function FullCourse({ navigation,route }) {
                         <ScrollView>
                             {/* Reviews list */}
                             <View style={styles.reviewList}>
-                                {comments.length === 0 ? (
-                                    <Text style={styles.noComments}>No comments yet. Be the first to comment!</Text>
-                                ) : (
-                                    comments.map((comment, index) => (
-                                        <View key={index} style={styles.reviewItem}>
-                                            {
-                                                dataMyProfile.map((profile) => (
-                                                    <View>
-                                                       <View style={{display:'flex',flexDirection:'row',alignItems:'center' }}> 
-                                                            <Image style={{height:40,width:40}} source={{ uri: `../assets/avatar/${profile.avatar}` }}></Image>
-                                                            <Text style={styles.reviewerName}>{dataUser.username}</Text>
-                                                       </View>
-                                                        <Text style={{fontSize:13,opacity:0.5}}>A day ago</Text>
-                                                        <Text style={styles.reviewText}>{comment}</Text>
-                                                    </View>
-                                                ))
-                                            }
-                                        </View>
-                                    ))
-                                )}
-                            </View>
+  {comments.length === 0 ? (
+    <Text style={styles.noComments}>No comments yet. Be the first to comment!</Text>
+  ) : (
+    comments.map((comment, index) => (
+      <View key={index} style={styles.reviewItem}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Image
+            style={{ height: 40, width: 40, borderRadius: 20 }}
+            source={{ uri: dataUser.avatar || 'https://default-avatar-url.com' }}
+          />
+          <Text style={styles.reviewerName}>{dataUser.username}</Text>
+        </View>
+        <Text style={styles.reviewText}>{comment.comment}</Text>
+        <Text style={{ fontSize: 12, color: '#666' }}>
+          {new Date(comment.created_at).toLocaleString()}
+        </Text>
+      </View>
+    ))
+  )}
+</View>
+
                 
                             {/* Comment Input */}
                             <View style={styles.commentInputContainer}>
