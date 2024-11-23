@@ -113,22 +113,25 @@ export default function ScreenHomeCourse({navigation,route}) {
             </View>
 
             <View style={styles.popularCoursesContainer}>
-        {dataCourses.map((course, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.courseItem}
-            onPress={() =>
-              navigation.navigate("CourseDetail", { courseID: course.id, userID: userId })
-            }
-          >
-            <Image source={{ uri: course.banner }} style={styles.courseImage} />
-            <Text style={styles.courseTitle}>{course.name}</Text>
-            <Text style={styles.courseAuthor}>By Author {course.author_id}</Text>
-            <Text style={styles.coursePrice}>${course.price}</Text>
-            <Text style={styles.courseLessons}>{course.lessons} lessons</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+  {dataCourses.map((course, index) => (
+    <TouchableOpacity
+      key={index}
+      style={styles.courseItem}
+      onPress={() =>
+        navigation.navigate("CourseDetail", { courseID: course.id, userID: userId })
+      }
+    >
+      <Image source={{ uri: course.banner }} style={styles.courseImage} />
+      <Text style={styles.courseTitle}>{course.name}</Text>
+      <Text style={styles.courseAuthor}>By Author {course.author_id}</Text>
+      <Text style={styles.coursePrice}>${course.price}</Text>
+      <Text style={styles.courseLessons}>{course.lessons} lessons</Text>
+      <Text style={styles.courseRating}>
+        <Icon name="star" size={14} color="#FFD700" /> {course.rating}
+      </Text>
+    </TouchableOpacity>
+  ))}
+</View>
 
             <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Recommended for you</Text>
@@ -136,19 +139,25 @@ export default function ScreenHomeCourse({navigation,route}) {
             </View>
 
             <View style={styles.recommendedContainer}>
-            {
-                    dataCourses.slice(2,4).map((course,index) => (
-                        <TouchableOpacity style={styles.courseItem} key={index} onPress={()=>{navigation.navigate("CourseDetail",{courseID:course._id,userID: userId})}}>             
-                           
-                                <Image source={{ uri: course.banner}} style={styles.courseImage} />
-                                <Text style={styles.courseTitle}>{course.name}</Text>
-                                <Text style={styles.coursePrice}>${course.price}</Text>
-                                <Text style={styles.courseLessons}>{course.lesson} lessons</Text>
-                          
-                        </TouchableOpacity>
-                    ))
-                }
-            </View>
+  {dataCourses.slice(2, 4).map((course, index) => (
+    <TouchableOpacity
+      key={index}
+      style={styles.courseItem}
+      onPress={() =>
+        navigation.navigate("CourseDetail", { courseID: course.id, userID: userId })
+      }
+    >
+      <Image source={{ uri: course.banner }} style={styles.courseImage} />
+      <Text style={styles.courseTitle}>{course.name}</Text>
+      <Text style={styles.coursePrice}>${course.price}</Text>
+      <Text style={styles.courseLessons}>{course.lessons} lessons</Text>
+      <Text style={styles.courseRating}>
+        <Icon name="star" size={14} color="#FFD700" /> {course.rating}
+      </Text>
+    </TouchableOpacity>
+  ))}
+</View>
+
 
             <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Courses that inspire</Text>
@@ -156,19 +165,24 @@ export default function ScreenHomeCourse({navigation,route}) {
             </View>
 
             <View style={styles.inspiredContainer}>
-                {
-                    dataCourses.slice(4,6).map((course,index) => (
-                        <TouchableOpacity style={styles.courseItem} key={index} onPress={()=>{navigation.navigate("CourseDetail",{courseID:course._id,userID: userId})}}>             
-                           
-                                <Image source={{ uri: course.banner }} style={styles.courseImage} />
-                                <Text style={styles.courseTitle}>{course.name}</Text>
-                                <Text style={styles.coursePrice}>${course.price}</Text>
-                                <Text style={styles.courseLessons}>{course.lesson} lessons</Text>
-                          
-                        </TouchableOpacity>
-                    ))
-                }
-            </View>
+  {dataCourses.slice(4, 6).map((course, index) => (
+    <TouchableOpacity
+      key={index}
+      style={styles.courseItem}
+      onPress={() =>
+        navigation.navigate("CourseDetail", { courseID: course.id, userID: userId })
+      }
+    >
+      <Image source={{ uri: course.banner }} style={styles.courseImage} />
+      <Text style={styles.courseTitle}>{course.name}</Text>
+      <Text style={styles.coursePrice}>${course.price}</Text>
+      <Text style={styles.courseLessons}>{course.lessons} lessons</Text>
+      <Text style={styles.courseRating}>
+        <Icon name="star" size={14} color="#FFD700" /> {course.rating}
+      </Text>
+    </TouchableOpacity>
+  ))}
+</View>
 
             <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Top teachers</Text>
@@ -342,6 +356,13 @@ const styles = StyleSheet.create({
         marginTop: 5,
 
     },
+    courseRating: {
+        fontSize: 12,
+        color: "#888",
+        marginTop: 5,
+        flexDirection: "row",
+        alignItems: "center",
+      },
     teachersContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
